@@ -1,4 +1,7 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { IPC } from '@shared/types'
+import { getVaultTree } from './services/noteService'
+import { addRecentVault, getRecentVaults } from './services/vaultService'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
 
 // Allow multiple instances — one window per vault (Decision D-010)
@@ -26,7 +29,7 @@ export function createWindow(vaultPath?: string): BrowserWindow {
     backgroundColor: '#ffffff',
     show: false,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.mjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -56,7 +59,33 @@ export function createWindow(vaultPath?: string): BrowserWindow {
 }
 
 app.whenReady().then(() => {
+  ipcMain.handle(IPC.VAULT_GET_RECENT, async () => {
+    return getRecentVaults()
+  })
+
+  ipcMain.handle(IPC.VAULT_GET_TREE, async (_e, vaultPath: string) => {
+    return getVaultTree(vaultPath)
+  })
+
+  ipcMain.handle(IPC.VAULT_OPEN_PATH, async (_e, vaultPath: string) => {
+    await addRecentVault(vaultPath)
+    return vaultPath
+  })
+
+  ipcMain.handle(IPC.VAULT_OPEN_PICKER, async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: 'Open Vault',
+      buttonLabel: 'Open',
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    const vaultPath = result.filePaths[0]
+    await addRecentVault(vaultPath)
+    return vaultPath
+  })
+
   createWindow()
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })

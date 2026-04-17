@@ -1,11 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC } from '@shared/types'
+import type { VaultMeta } from '@shared/types'
 
-/**
- * The only place ipcRenderer is used.
- * Everything here is available in the renderer as window.api.
- * Add methods as IPC channels are implemented in main.
- */
 contextBridge.exposeInMainWorld('api', {
+  getVaultTree: (vaultPath: string) => ipcRenderer.invoke(IPC.VAULT_GET_TREE, vaultPath),
+  getRecentVaults: (): Promise<VaultMeta[]> => ipcRenderer.invoke(IPC.VAULT_GET_RECENT),
   openNewWindow: () => ipcRenderer.invoke(IPC.APP_OPEN_NEW_WINDOW),
+  openVaultPath: (path: string) => ipcRenderer.invoke(IPC.VAULT_OPEN_PATH, path),
+  openVaultPicker: () => ipcRenderer.invoke(IPC.VAULT_OPEN_PICKER),
 })
