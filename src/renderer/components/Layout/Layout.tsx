@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import Editor from "../Editor/Editor";
+import React, { useState, useRef } from 'react'
 import FolderTree from './FolderTree'
+import PanelToolbar from './PanelToolbar'
+import Editor from '../Editor/Editor'
 
 interface Props {
   vaultPath: string
@@ -9,6 +10,32 @@ interface Props {
 export default function Layout({ vaultPath }: Props): React.ReactElement {
   const [panelOpen, setPanelOpen] = useState(true)
   const [selectedNote, setSelectedNote] = useState<string | null>(null)
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [treeKey, setTreeKey] = useState(0)
+  const [panelWidth, setPanelWidth] = useState(256)
+  const isResizing = useRef(false)
+
+  function startResize(e: React.MouseEvent) {
+    isResizing.current = true
+    const startX = e.clientX
+    const startWidth = panelWidth
+
+    function onMouseMove(e: MouseEvent) {
+      if (!isResizing.current) return
+      const newWidth = Math.max(150, Math.min(500, startWidth + e.clientX - startX))
+      setPanelWidth(newWidth)
+    }
+
+    function onMouseUp() {
+      isResizing.current = false
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -16,7 +43,10 @@ export default function Layout({ vaultPath }: Props): React.ReactElement {
 
         {/* Left panel */}
         {panelOpen && (
-          <div className="w-64 shrink-0 border-r border-neutral-200 dark:border-neutral-700 flex flex-col">
+          <div
+            style={{ width: panelWidth }}
+            className="shrink-0 border-r border-neutral-200 dark:border-neutral-700 flex flex-col relative"
+          >
             <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-200 dark:border-neutral-700">
               <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
                 {vaultPath.split('/').pop()}
@@ -28,15 +58,34 @@ export default function Layout({ vaultPath }: Props): React.ReactElement {
                 ←
               </button>
             </div>
+            <PanelToolbar
+              vaultPath={vaultPath}
+              selectedFolder={selectedFolder}
+              onSearch={setSearchQuery}
+              onNoteCreated={(notePath) => {
+                setTreeKey((k) => k + 1)
+                setSelectedNote(notePath)
+              }}
+              onDirCreated={() => setTreeKey((k) => k + 1)}
+            />
             <div className="flex-1 overflow-y-auto">
-            <FolderTree
+              <FolderTree
+                key={treeKey}
                 vaultPath={vaultPath}
                 onNoteSelect={setSelectedNote}
-            />
+                searchQuery={searchQuery}
+                onFolderSelect={setSelectedFolder}
+              />
             </div>
             <div className="border-t border-neutral-200 dark:border-neutral-700 p-2 text-sm text-neutral-400">
               Tags
             </div>
+
+            {/* Resize handle */}
+            <div
+              onMouseDown={startResize}
+              className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-400 opacity-0 hover:opacity-100 transition-opacity"
+            />
           </div>
         )}
 
@@ -51,7 +100,13 @@ export default function Layout({ vaultPath }: Props): React.ReactElement {
         )}
 
         {/* Editor */}
-        <Editor notePath={selectedNote} />
+        <Editor
+          notePath={selectedNote}
+          onPathChange={(newPath) => {
+            setSelectedNote(newPath)
+            setTreeKey((k) => k + 1)
+          }}
+        />
 
       </div>
 

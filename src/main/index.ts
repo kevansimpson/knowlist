@@ -1,5 +1,5 @@
 import { IPC } from '@shared/types'
-import { getVaultTree, readNote, writeNote } from './services/noteService'
+import { createDir, createNote, getVaultTree, readNote, renameNote, writeNote } from './services/noteService'
 import { addRecentVault, getRecentVaults } from './services/vaultService'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
@@ -59,8 +59,21 @@ export function createWindow(vaultPath?: string): BrowserWindow {
 }
 
 app.whenReady().then(() => {
+  ipcMain.handle(IPC.DIR_CREATE, async (_e, dirPath: string) => {
+    await createDir(dirPath)
+    return true
+  })
+
+  ipcMain.handle(IPC.NOTE_CREATE, async (_e, folderPath: string, title: string) => {
+    return createNote(folderPath, title)
+  })
+
   ipcMain.handle(IPC.NOTE_READ, async (_e, notePath: string) => {
     return readNote(notePath)
+  })
+
+  ipcMain.handle(IPC.NOTE_RENAME, async (_e, oldPath: string, newTitle: string) => {
+    return renameNote(oldPath, newTitle)
   })
 
   ipcMain.handle(IPC.NOTE_WRITE, async (_e, notePath: string, title: string, body: string) => {

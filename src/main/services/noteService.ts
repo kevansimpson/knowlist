@@ -1,9 +1,22 @@
 import { join, relative, basename } from 'path'
-import { readFile, readdir, stat } from 'fs/promises'
+import { mkdir, readFile, readdir, stat, writeFile } from 'fs/promises'
 import type { FolderNode, NoteFile, NoteSummary } from '@shared/types'
 
 const IGNORED = new Set(['.git', '_attachments', 'node_modules'])
 const NOTE_EXT = '.md'
+
+export async function createNote(folderPath: string, title: string): Promise<string> {
+  const filename = `${title}.md`
+  const notePath = join(folderPath, filename)
+  const now = new Date().toISOString()
+  const content = `---\ntitle: ${title}\ncreated: ${now}\nmodified: ${now}\n---\n\n`
+  await writeFile(notePath, content, 'utf-8')
+  return notePath
+}
+
+export async function createDir(dirPath: string): Promise<void> {
+  await mkdir(dirPath, { recursive: true })
+}
 
 export async function getVaultTree(vaultPath: string): Promise<FolderNode> {
   async function walk(dirPath: string): Promise<FolderNode> {
@@ -59,6 +72,14 @@ export async function readNote(notePath: string): Promise<NoteFile> {
   }
 
   return { path: notePath, title, body }
+}
+
+export async function renameNote(oldPath: string, newTitle: string): Promise<string> {
+  const dir = oldPath.substring(0, oldPath.lastIndexOf('/'))
+  const newPath = `${dir}/${newTitle}.md`
+  const { rename } = await import('fs/promises')
+  await rename(oldPath, newPath)
+  return newPath
 }
 
 export async function writeNote(notePath: string, title: string, body: string): Promise<void> {

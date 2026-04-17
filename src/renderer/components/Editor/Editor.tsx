@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import type { NoteFile } from '@shared/types'
 import PlainEditor from './editors/PlainEditor'
 import WysiwygEditor from './editors/WysiwygEditor'
@@ -7,9 +7,10 @@ type EditorMode = 'wysiwyg' | 'plain'
 
 interface Props {
   notePath: string | null
+  onPathChange: (newPath: string) => void
 }
 
-export default function Editor({ notePath }: Props): React.ReactElement {
+export default function Editor({ notePath, onPathChange }: Props): React.ReactElement {
   const [note, setNote] = useState<NoteFile | null>(null)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
@@ -17,6 +18,11 @@ export default function Editor({ notePath }: Props): React.ReactElement {
   const [mode, setMode] = useState<EditorMode>(
     () => (localStorage.getItem('editorMode') as EditorMode) ?? 'plain'
   )
+  const notePathRef = useRef<string | null>(notePath)
+
+  useEffect(() => {
+    notePathRef.current = notePath
+  }, [notePath])
 
   useEffect(() => {
     if (!notePath || !window.api) {
@@ -32,10 +38,21 @@ export default function Editor({ notePath }: Props): React.ReactElement {
   }, [notePath])
 
   const save = useCallback(async () => {
-    if (!notePath || !window.api || !dirty) return
-    await window.api.writeNote(notePath, title, body)
+    const currentPath = notePathRef.current
+    if (!currentPath || !window.api || !dirty) return
+
+    const currentNote = await window.api.readNote(currentPath)
+    if (currentNote.title !== title) {
+        const newPath = await window.api.renameNote(currentPath, title)
+        notePathRef.current = newPath
+        onPathChange(newPath)
+        await window.api.writeNote(newPath, title, body)
+    } else {
+        await window.api.writeNote(currentPath, title, body)
+    }
+
     setDirty(false)
-  }, [notePath, title, body, dirty])
+  }, [title, body, dirty])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -76,6 +93,7 @@ export default function Editor({ notePath }: Props): React.ReactElement {
           className="selectable text-2xl font-semibold text-neutral-900 dark:text-neutral-100 bg-transparent outline-none flex-1"
           value={title}
           onChange={(e) => { setTitle(e.target.value); setDirty(true) }}
+          readOnly={mode === 'wysiwyg'}
         />
         <span className="text-xs text-neutral-400 shrink-0">
           {dirty ? 'Unsaved changes' : 'Saved'}

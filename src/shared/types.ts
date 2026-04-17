@@ -4,7 +4,10 @@
  */
 export const IPC = {
   APP_OPEN_NEW_WINDOW: 'app:open-new-window',
+  DIR_CREATE: 'dir:create',
+  NOTE_CREATE: 'note:create',
   NOTE_READ: 'note:read',
+  NOTE_RENAME: 'note:rename',
   NOTE_WRITE: 'note:write',
   VAULT_GET_RECENT:  'vault:get-recent',
   VAULT_GET_TREE: 'vault:get-tree',
