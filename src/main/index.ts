@@ -1,5 +1,5 @@
 import { IPC } from '@shared/types'
-import { getVaultTree } from './services/noteService'
+import { getVaultTree, readNote, writeNote } from './services/noteService'
 import { addRecentVault, getRecentVaults } from './services/vaultService'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
@@ -59,6 +59,15 @@ export function createWindow(vaultPath?: string): BrowserWindow {
 }
 
 app.whenReady().then(() => {
+  ipcMain.handle(IPC.NOTE_READ, async (_e, notePath: string) => {
+    return readNote(notePath)
+  })
+
+  ipcMain.handle(IPC.NOTE_WRITE, async (_e, notePath: string, title: string, body: string) => {
+    await writeNote(notePath, title, body)
+    return true
+  })
+
   ipcMain.handle(IPC.VAULT_GET_RECENT, async () => {
     return getRecentVaults()
   })

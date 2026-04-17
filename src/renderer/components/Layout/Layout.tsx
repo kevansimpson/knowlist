@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Editor from "../Editor/Editor";
 import FolderTree from './FolderTree'
 
 interface Props {
@@ -50,12 +51,7 @@ export default function Layout({ vaultPath }: Props): React.ReactElement {
         )}
 
         {/* Editor */}
-        <div className="flex-1 flex items-center justify-center text-sm text-neutral-400">
-          {selectedNote
-            ? <span className="font-mono">{selectedNote.split('/').pop()}</span>
-            : <span>Select a note</span>
-        }
-        </div>
+        <Editor notePath={selectedNote} />
 
       </div>
 

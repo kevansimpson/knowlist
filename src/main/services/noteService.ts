@@ -1,6 +1,6 @@
 import { join, relative, basename } from 'path'
-import { readdir, stat } from 'fs/promises'
-import type { FolderNode, NoteSummary } from '@shared/types'
+import { readFile, readdir, stat } from 'fs/promises'
+import type { FolderNode, NoteFile, NoteSummary } from '@shared/types'
 
 const IGNORED = new Set(['.git', '_attachments', 'node_modules'])
 const NOTE_EXT = '.md'
@@ -39,4 +39,47 @@ export async function getVaultTree(vaultPath: string): Promise<FolderNode> {
   }
 
   return walk(vaultPath)
+}
+
+export async function readNote(notePath: string): Promise<NoteFile> {
+  const raw = await readFile(notePath, 'utf-8')
+
+  // Strip YAML frontmatter if present
+  let body = raw
+  let title = basename(notePath, NOTE_EXT)
+
+  if (raw.startsWith('---')) {
+    const end = raw.indexOf('---', 3)
+    if (end !== -1) {
+      const frontmatter = raw.slice(3, end)
+      const titleMatch = frontmatter.match(/^title:\s*(.+)$/m)
+      if (titleMatch) title = titleMatch[1].trim()
+      body = raw.slice(end + 3).trimStart()
+    }
+  }
+
+  return { path: notePath, title, body }
+}
+
+export async function writeNote(notePath: string, title: string, body: string): Promise<void> {
+  const existing = await readFile(notePath, 'utf-8')
+
+  // Preserve existing frontmatter fields, just update title
+  let frontmatter = `title: ${title}`
+  if (existing.startsWith('---')) {
+    const end = existing.indexOf('---', 3)
+    if (end !== -1) {
+      const block = existing.slice(3, end)
+      // Replace title line if present, otherwise prepend it
+      if (/^title:/m.test(block)) {
+        frontmatter = block.replace(/^title:.+$/m, `title: ${title}`).trim()
+      } else {
+        frontmatter = `title: ${title}\n${block.trim()}`
+      }
+    }
+  }
+
+  const content = `---\n${frontmatter}\n---\n\n${body}`
+  const { writeFile } = await import('fs/promises')
+  await writeFile(notePath, content, 'utf-8')
 }

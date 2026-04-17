@@ -1,4 +1,4 @@
-import type { FolderNode, VaultMeta } from '@shared/types'
+import type { FolderNode, NoteFile, VaultMeta } from '@shared/types'
 
 export interface KnowListApi {
   getRecentVaults: () => Promise<VaultMeta[]>
@@ -6,6 +6,8 @@ export interface KnowListApi {
   openNewWindow: () => Promise<void>
   openVaultPath: (path: string) => Promise<string>
   openVaultPicker: () => Promise<string | null>
+  readNote: (path: string) => Promise<NoteFile>
+  writeNote: (path: string, title: string, body: string) => Promise<boolean>
 }
 
 declare global {
