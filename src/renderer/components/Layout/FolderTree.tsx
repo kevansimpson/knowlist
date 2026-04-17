@@ -6,6 +6,7 @@ interface Props {
   onNoteSelect: (path: string) => void
   onFolderSelect: (path: string) => void
   searchQuery?: string
+  selectedFolder: string | null
 }
 
 function noteMatchesQuery(note: NoteSummary, query: string): boolean {
@@ -41,6 +42,7 @@ function FolderItem({
   onFolderSelect,
   depth,
   activeNote,
+  activeFolder,
   searchQuery,
 }: {
   node: FolderNode
@@ -48,6 +50,7 @@ function FolderItem({
   onFolderSelect: (path: string) => void
   depth: number
   activeNote: string | null
+  activeFolder: string | null
   searchQuery?: string
 }) {
   const [expanded, setExpanded] = useState(depth === 0)
@@ -70,7 +73,11 @@ function FolderItem({
             setExpanded((e) => !e)
             onFolderSelect(node.path)
           }}
-          className="w-full text-left py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm font-medium text-neutral-600 dark:text-neutral-400 flex items-center gap-1"
+          className={`w-full text-left py-1 rounded text-sm font-medium flex items-center gap-1 transition-colors ${
+            activeFolder === node.path
+              ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+              : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+          }`}
           style={{ paddingLeft: `${depth * 12}px` }}
         >
           <span className="text-xs">{expanded ? '▾' : '▸'}</span>
@@ -97,6 +104,7 @@ function FolderItem({
               onFolderSelect={onFolderSelect}
               depth={depth + 1}
               activeNote={activeNote}
+              activeFolder={activeFolder}
               searchQuery={searchQuery}
             />
           ))}
@@ -111,9 +119,14 @@ export default function FolderTree({
   onNoteSelect,
   onFolderSelect,
   searchQuery,
+  selectedFolder,
 }: Props): React.ReactElement {
   const [tree, setTree] = useState<FolderNode | null>(null)
   const [activeNote, setActiveNote] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (selectedFolder !== null) setActiveNote(null)
+  }, [selectedFolder])
 
   useEffect(() => {
     if (!window.api) return
@@ -142,6 +155,7 @@ export default function FolderTree({
         onFolderSelect={onFolderSelect}
         depth={0}
         activeNote={activeNote}
+        activeFolder={selectedFolder}
         searchQuery={searchQuery}
       />
     </div>

@@ -5,6 +5,8 @@ import type { VaultMeta } from '@shared/types'
 contextBridge.exposeInMainWorld('api', {
   createDir: (dirPath: string) => ipcRenderer.invoke(IPC.DIR_CREATE, dirPath),
   createNote: (folderPath: string, title: string) => ipcRenderer.invoke(IPC.NOTE_CREATE, folderPath, title),
+  deleteDir: (path: string) => ipcRenderer.invoke(IPC.DIR_DELETE, path),
+  deleteNote: (path: string) => ipcRenderer.invoke(IPC.NOTE_DELETE, path),
   getVaultTree: (vaultPath: string) => ipcRenderer.invoke(IPC.VAULT_GET_TREE, vaultPath),
   getRecentVaults: (): Promise<VaultMeta[]> => ipcRenderer.invoke(IPC.VAULT_GET_RECENT),
   openNewWindow: () => ipcRenderer.invoke(IPC.APP_OPEN_NEW_WINDOW),

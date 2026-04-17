@@ -5,7 +5,9 @@
 export const IPC = {
   APP_OPEN_NEW_WINDOW: 'app:open-new-window',
   DIR_CREATE: 'dir:create',
+  DIR_DELETE: 'dir:delete',
   NOTE_CREATE: 'note:create',
+  NOTE_DELETE: 'note:delete',
   NOTE_READ: 'note:read',
   NOTE_RENAME: 'note:rename',
   NOTE_WRITE: 'note:write',

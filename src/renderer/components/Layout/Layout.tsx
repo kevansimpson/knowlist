@@ -61,6 +61,7 @@ export default function Layout({ vaultPath }: Props): React.ReactElement {
             <PanelToolbar
               vaultPath={vaultPath}
               selectedFolder={selectedFolder}
+              notePath={selectedNote}
               onSearch={setSearchQuery}
               onNoteCreated={(notePath) => {
                 setTreeKey((k) => k + 1)
@@ -72,9 +73,16 @@ export default function Layout({ vaultPath }: Props): React.ReactElement {
               <FolderTree
                 key={treeKey}
                 vaultPath={vaultPath}
-                onNoteSelect={setSelectedNote}
+                selectedFolder={selectedFolder}
+                onNoteSelect={(path) => {
+                  setSelectedNote(path)
+                  setSelectedFolder(null)
+                }}
                 searchQuery={searchQuery}
-                onFolderSelect={setSelectedFolder}
+                onFolderSelect={(path) => {
+                  setSelectedFolder(path)
+                  setSelectedNote(null)
+                }}
               />
             </div>
             <div className="border-t border-neutral-200 dark:border-neutral-700 p-2 text-sm text-neutral-400">
@@ -102,8 +110,14 @@ export default function Layout({ vaultPath }: Props): React.ReactElement {
         {/* Editor */}
         <Editor
           notePath={selectedNote}
+          selectedFolder={selectedFolder}
+          vaultPath={vaultPath}
           onPathChange={(newPath) => {
             setSelectedNote(newPath)
+            setTreeKey((k) => k + 1)
+          }}
+          onDelete={() => {
+            setSelectedNote(null)
             setTreeKey((k) => k + 1)
           }}
         />

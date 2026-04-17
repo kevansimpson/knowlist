@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import type { NoteFile } from '@shared/types'
+import EditorToolbar from './EditorToolbar'
 import PlainEditor from './editors/PlainEditor'
 import WysiwygEditor from './editors/WysiwygEditor'
 
@@ -7,10 +8,18 @@ type EditorMode = 'wysiwyg' | 'plain'
 
 interface Props {
   notePath: string | null
+  selectedFolder: string | null
+  vaultPath: string
   onPathChange: (newPath: string) => void
+  onDelete: () => void
 }
 
-export default function Editor({ notePath, onPathChange }: Props): React.ReactElement {
+export default function Editor({
+    notePath,
+    selectedFolder,
+    vaultPath,
+    onPathChange,
+    onDelete }: Props): React.ReactElement {
   const [note, setNote] = useState<NoteFile | null>(null)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
@@ -72,22 +81,44 @@ export default function Editor({ notePath, onPathChange }: Props): React.ReactEl
 
   if (!notePath) {
     return (
-      <div className="flex-1 flex items-center justify-center text-sm text-neutral-400">
-        Select a note
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <EditorToolbar
+          notePath={null}
+          selectedFolder={selectedFolder}
+          vaultPath={vaultPath}
+          onDelete={onDelete}
+        />
+        <div className="flex-1 flex items-center justify-center text-sm text-neutral-400">
+          Select a note
+        </div>
       </div>
     )
   }
 
   if (!note) {
     return (
-      <div className="flex-1 flex items-center justify-center text-sm text-neutral-400">
-        Loading...
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <EditorToolbar
+          notePath={null}
+          selectedFolder={selectedFolder}
+          vaultPath={vaultPath}
+          onDelete={onDelete}
+        />
+        <div className="flex-1 flex items-center justify-center text-sm text-neutral-400">
+          Loading...
+        </div>
       </div>
     )
   }
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <EditorToolbar
+        notePath={notePath}
+        selectedFolder={selectedFolder}
+        vaultPath={vaultPath}
+        onDelete={onDelete}
+      />
       <div className="px-8 pt-8 pb-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center gap-4">
         <input
           className="selectable text-2xl font-semibold text-neutral-900 dark:text-neutral-100 bg-transparent outline-none flex-1"
@@ -119,7 +150,7 @@ export default function Editor({ notePath, onPathChange }: Props): React.ReactEl
           <PlainEditor body={body} onChange={(b) => { setBody(b); setDirty(true) }} />
         )}
         {mode === 'wysiwyg' && (
-          <WysiwygEditor body={body} onChange={(b) => { setBody(b); setDirty(true) }} />
+          <WysiwygEditor body={body} />
         )}
       </div>
     </div>

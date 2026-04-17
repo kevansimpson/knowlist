@@ -3,6 +3,8 @@ import type { FolderNode, NoteFile, VaultMeta } from '@shared/types'
 export interface KnowListApi {
   createDir: (dirPath: string) => Promise<boolean>
   createNote: (folderPath: string, title: string) => Promise<string>
+  deleteDir: (path: string) => Promise<boolean>
+  deleteNote: (path: string) => Promise<boolean>
   getRecentVaults: () => Promise<VaultMeta[]>
   getVaultTree: (vaultPath: string) => Promise<FolderNode>
   openNewWindow: () => Promise<void>

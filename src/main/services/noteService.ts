@@ -5,6 +5,10 @@ import type { FolderNode, NoteFile, NoteSummary } from '@shared/types'
 const IGNORED = new Set(['.git', '_attachments', 'node_modules'])
 const NOTE_EXT = '.md'
 
+export async function createDir(dirPath: string): Promise<void> {
+  await mkdir(dirPath, { recursive: true })
+}
+
 export async function createNote(folderPath: string, title: string): Promise<string> {
   const filename = `${title}.md`
   const notePath = join(folderPath, filename)
@@ -14,8 +18,14 @@ export async function createNote(folderPath: string, title: string): Promise<str
   return notePath
 }
 
-export async function createDir(dirPath: string): Promise<void> {
-  await mkdir(dirPath, { recursive: true })
+export async function deleteDir(dirPath: string): Promise<void> {
+  const { rm } = await import('fs/promises')
+  await rm(dirPath, { recursive: true, force: true })
+}
+
+export async function deleteNote(notePath: string): Promise<void> {
+  const { unlink } = await import('fs/promises')
+  await unlink(notePath)
 }
 
 export async function getVaultTree(vaultPath: string): Promise<FolderNode> {
