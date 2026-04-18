@@ -147,10 +147,18 @@ export default function Editor({
       </div>
       <div className="flex-1 overflow-y-auto px-8 py-6">
         {mode === 'plain' && (
-          <PlainEditor body={body} onChange={(b) => { setBody(b); setDirty(true) }} />
+          <PlainEditor
+            body={body}
+            onChange={(b) => { setBody(b); setDirty(true) }}
+            vaultPath={vaultPath} />
         )}
         {mode === 'wysiwyg' && (
-          <WysiwygEditor body={body} />
+          <WysiwygEditor
+            body={body}
+            notePath={notePath}
+            vaultPath={vaultPath}
+            onNoteOpen={onPathChange}
+          />
         )}
       </div>
     </div>

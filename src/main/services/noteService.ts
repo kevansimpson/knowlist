@@ -1,3 +1,4 @@
+import { existsSync } from 'fs'
 import { join, relative, basename } from 'path'
 import { mkdir, readFile, readdir, stat, writeFile } from 'fs/promises'
 import type { FolderNode, NoteFile, NoteSummary } from '@shared/types'
@@ -62,6 +63,10 @@ export async function getVaultTree(vaultPath: string): Promise<FolderNode> {
   }
 
   return walk(vaultPath)
+}
+
+export function noteExists(notePath: string): boolean {
+  return existsSync(notePath)
 }
 
 export async function readNote(notePath: string): Promise<NoteFile> {

@@ -1,10 +1,12 @@
 import { IPC } from '@shared/types'
+import { searchIndex } from './services/indexService'
 import { 
   createDir,
   createNote,
   deleteDir,
   deleteNote,
   getVaultTree,
+  noteExists,
   readNote,
   renameNote,
   writeNote } from './services/noteService'
@@ -56,6 +58,9 @@ export function createWindow(vaultPath?: string): BrowserWindow {
     )
   }
 
+  if (process.env['NODE_ENV'] === 'development') {
+    win.webContents.openDevTools()
+  }
   win.once('ready-to-show', () => win.show())
 
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -77,6 +82,10 @@ app.whenReady().then(() => {
     return true
   })
 
+  ipcMain.handle(IPC.INDEX_SEARCH, async (_e, vaultPath: string, query: string) => {
+    return searchIndex(vaultPath, query)
+  })
+
   ipcMain.handle(IPC.NOTE_CREATE, async (_e, folderPath: string, title: string) => {
     return createNote(folderPath, title)
   })
@@ -84,6 +93,10 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.NOTE_DELETE, async (_e, notePath: string) => {
     await deleteNote(notePath)
     return true
+  })
+
+  ipcMain.handle(IPC.NOTE_EXISTS, async (_e, notePath: string) => {
+    return noteExists(notePath)
   })
 
   ipcMain.handle(IPC.NOTE_READ, async (_e, notePath: string) => {
@@ -96,6 +109,11 @@ app.whenReady().then(() => {
 
   ipcMain.handle(IPC.NOTE_WRITE, async (_e, notePath: string, title: string, body: string) => {
     await writeNote(notePath, title, body)
+    return true
+  })
+
+  ipcMain.handle(IPC.SHELL_OPEN_EXTERNAL, async (_e, url: string) => {
+    await shell.openExternal(url)
     return true
   })
 

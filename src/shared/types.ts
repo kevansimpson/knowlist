@@ -6,11 +6,14 @@ export const IPC = {
   APP_OPEN_NEW_WINDOW: 'app:open-new-window',
   DIR_CREATE: 'dir:create',
   DIR_DELETE: 'dir:delete',
+  INDEX_SEARCH: 'index:search',
   NOTE_CREATE: 'note:create',
   NOTE_DELETE: 'note:delete',
+  NOTE_EXISTS: 'note:exists',
   NOTE_READ: 'note:read',
   NOTE_RENAME: 'note:rename',
   NOTE_WRITE: 'note:write',
+  SHELL_OPEN_EXTERNAL: 'shell:open-external',
   VAULT_GET_RECENT:  'vault:get-recent',
   VAULT_GET_TREE: 'vault:get-tree',
   VAULT_OPEN_PATH:   'vault:open-path',
@@ -40,6 +43,15 @@ export interface NoteFile {
   title: string
   body: string
 }
+
+// for searching
+export interface NoteIndex {
+  title: string
+  path: string
+  relativePath: string
+  folderPath: string
+}
+
 // vault path
 export interface VaultMeta {
   path: string
